@@ -55,5 +55,10 @@ func (app *App) newTemplateData(r *http.Request) *templateData {
 }
 
 func (app *App) isAuthenticated(r *http.Request) bool {
-	return app.sessionManager.Exists(r.Context(), "authenticatedUserID")
+	isAuthenticated, ok := r.Context().Value(isAuthenticatedContextKey).(bool)
+	if !ok {
+		return false
+	}
+
+	return isAuthenticated
 }

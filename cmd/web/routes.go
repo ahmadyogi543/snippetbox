@@ -19,7 +19,7 @@ func (app *App) routes() http.Handler {
 	router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fileServer))
 
 	// dynamic middleware.
-	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf)
+	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf, app.authenticate)
 
 	// handling paths with handler functions from the app struct
 	router.Handler(http.MethodGet, "/", dynamic.ThenFunc(app.home))
