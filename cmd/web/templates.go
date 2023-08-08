@@ -2,9 +2,11 @@ package main
 
 import (
 	"html/template"
+	"io/fs"
 	"path/filepath"
 
 	"github.com/ahmadyogi543/snippetbox/internal/models"
+	"github.com/ahmadyogi543/snippetbox/ui"
 )
 
 type templateData struct {
@@ -24,7 +26,7 @@ var templateFunctions = template.FuncMap{
 func newTemplateCache() (map[string]*template.Template, error) {
 	cache := map[string]*template.Template{}
 
-	pages, err := filepath.Glob("./ui/html/pages/*.go.html")
+	pages, err := fs.Glob(ui.Files, "html/pages/*.go.html")
 	if err != nil {
 		return nil, err
 	}
@@ -32,18 +34,14 @@ func newTemplateCache() (map[string]*template.Template, error) {
 	for _, page := range pages {
 		name := filepath.Base(page)
 
+		patterns := []string{
+			"html/base.go.html",
+			"html/partials/*.go.html",
+			page,
+		}
+
 		htmlTemplate := template.New(name).Funcs(templateFunctions)
-		ts, err := htmlTemplate.ParseFiles("./ui/html/base.go.html")
-		if err != nil {
-			return nil, err
-		}
-
-		ts, err = ts.ParseGlob("./ui/html/partials/*.go.html")
-		if err != nil {
-			return nil, err
-		}
-
-		ts, err = ts.ParseFiles(page)
+		ts, err := htmlTemplate.ParseFS(ui.Files, patterns...)
 		if err != nil {
 			return nil, err
 		}
