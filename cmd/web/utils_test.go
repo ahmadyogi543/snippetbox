@@ -3,6 +3,8 @@ package main
 import (
 	"testing"
 	"time"
+
+	"github.com/ahmadyogi543/snippetbox/internal/assert"
 )
 
 func TestFormatHumanReadableDate(t *testing.T) {
@@ -31,9 +33,7 @@ func TestFormatHumanReadableDate(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			formattedDate := formatHumanReadableDate(test.tm)
-			if formattedDate != test.expected {
-				t.Errorf("expected %q; got %q instead", test.expected, formattedDate)
-			}
+			assert.Equal(t, formattedDate, test.expected)
 		})
 	}
 }
