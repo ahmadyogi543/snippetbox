@@ -18,8 +18,9 @@ func (app *App) routes() http.Handler {
 	// file server handler with embed FS
 	fileServer := http.FileServer(http.FS(ui.Files))
 	router.Handler(http.MethodGet, "/static/*filepath", fileServer)
+	router.HandlerFunc(http.MethodGet, "/ping", ping)
 
-	// dynamic middleware.
+	// dynamic middleware
 	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf, app.authenticate)
 
 	// handling paths with handler functions from the app struct
@@ -30,13 +31,13 @@ func (app *App) routes() http.Handler {
 	router.Handler(http.MethodGet, "/user/login", dynamic.ThenFunc(app.userLogin))
 	router.Handler(http.MethodPost, "/user/login", dynamic.ThenFunc(app.userLoginPost))
 
-	// protected routes.
+	// protected routes
 	protected := dynamic.Append(app.requireAuthentication)
 	router.Handler(http.MethodGet, "/snippet/create", protected.ThenFunc(app.snippetCreateForm))
 	router.Handler(http.MethodPost, "/snippet/create", protected.ThenFunc(app.snippetCreatePost))
 	router.Handler(http.MethodPost, "/user/logout", protected.ThenFunc(app.userLogoutPost))
 
-	// create a middleware chain with alice and wraps the mux with middleware chain.
+	// create a middleware chain with alice and wraps the mux with middleware chain
 	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 	return standard.Then(router)
 }
