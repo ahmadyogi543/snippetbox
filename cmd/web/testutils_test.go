@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/http/cookiejar"
 	"net/http/httptest"
 	"testing"
 )
@@ -22,6 +23,17 @@ func newTestApp(t *testing.T) *App {
 
 func newTestServer(t *testing.T, h http.Handler) *testServer {
 	server := httptest.NewTLSServer(h)
+
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	server.Client().Jar = jar
+
+	server.Client().CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
 	return &testServer{server}
 }
 
