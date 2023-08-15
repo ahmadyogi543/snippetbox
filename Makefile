@@ -7,3 +7,6 @@ run: build
 
 clean:
 	@rm -rf bin/
+
+test:
+	@go test -v ./cmd/web
