@@ -7,6 +7,11 @@ run: build
 
 clean:
 	@rm -rf bin/
+	@rm -rf tls/
 
 test:
 	@go test -v ./cmd/web
+
+gen-tls:
+	@mkdir tls
+	@cd tls && go run /usr/local/go/src/crypto/tls/generate_cert.go --rsa-bits=2048 --host=localhost
