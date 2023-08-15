@@ -8,6 +8,10 @@ import (
 	"net/http/cookiejar"
 	"net/http/httptest"
 	"testing"
+	"time"
+
+	"github.com/ahmadyogi543/snippetbox/internal/mocks"
+	"github.com/alexedwards/scs/v2"
 )
 
 type testServer struct {
@@ -15,9 +19,22 @@ type testServer struct {
 }
 
 func newTestApp(t *testing.T) *App {
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sessionManager := scs.New()
+	sessionManager.Lifetime = 12 * time.Hour
+	sessionManager.Cookie.Secure = true
+
 	return &App{
-		errorLog: log.New(io.Discard, "", 0),
-		infoLog:  log.New(io.Discard, "", 0),
+		errorLog:       log.New(io.Discard, "", 0),
+		infoLog:        log.New(io.Discard, "", 0),
+		templateCache:  templateCache,
+		sessionManager: sessionManager,
+		users:          &mocks.UserModel{},
+		snippets:       &mocks.SnippetModel{},
 	}
 }
 
