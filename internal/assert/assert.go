@@ -17,6 +17,6 @@ func StringContaints(t *testing.T, actual, expected string) {
 	t.Helper()
 
 	if !strings.Contains(actual, expected) {
-		t.Errorf("expected to contain %v; got %v instead", expected, actual)
+		t.Errorf("expected to contain %q; got %q instead", expected, actual)
 	}
 }
