@@ -49,6 +49,24 @@ func (app *App) about(w http.ResponseWriter, r *http.Request) {
 	app.render(w, http.StatusOK, "about.go.html", data)
 }
 
+func (app *App) accountView(w http.ResponseWriter, r *http.Request) {
+	userID := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
+
+	user, err := app.users.Get(userID)
+	if err != nil {
+		if err == models.ErrNoRecord {
+			http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+		} else {
+			app.serverError(w, err)
+		}
+		return
+	}
+
+	data := app.newTemplateData(r)
+	data.User = user
+	app.render(w, http.StatusOK, "account.go.html", data)
+}
+
 func (app *App) snippetView(w http.ResponseWriter, r *http.Request) {
 	params := httprouter.ParamsFromContext(r.Context())
 
