@@ -16,6 +16,7 @@ import (
 )
 
 type App struct {
+	debug          bool
 	errorLog       *log.Logger
 	infoLog        *log.Logger
 	snippets       models.SnippetModelInterface
@@ -27,6 +28,7 @@ type App struct {
 func main() {
 	// get flags from the command line and parse it.
 	addr := flag.String("addr", ":3000", "HTTP network address")
+	debug := flag.Bool("debug", true, "Enable debug mode")
 	dsn := flag.String("dsn", "web:12345678@/snippetbox?parseTime=true", "MySQL data source name")
 	flag.Parse()
 
@@ -55,6 +57,7 @@ func main() {
 
 	// initialize app struct for containing the dependencies.
 	app := &App{
+		debug:          *debug,
 		errorLog:       errorLog,
 		infoLog:        infoLog,
 		snippets:       &models.SnippetModel{DB: db},
