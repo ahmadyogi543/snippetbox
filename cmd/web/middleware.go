@@ -52,6 +52,12 @@ func (app *App) requireAuthentication(next http.Handler) http.Handler {
 				"flash",
 				"You have to login to access this page!",
 			)
+			app.sessionManager.Put(
+				r.Context(),
+				"redirectPathAfterLogin",
+				r.URL.Path,
+			)
+			w.Header().Add("Cache-Control", "no-store")
 
 			http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 			return
