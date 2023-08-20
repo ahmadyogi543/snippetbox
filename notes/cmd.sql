@@ -34,8 +34,7 @@ DATE_ADD(UTC_TIMESTAMP(), INTERVAL 7 DAY)
 
 CREATE USER 'web'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON snippetbox.* TO 'web'@'localhost';
--- Important: Make sure to swap 'pass' with a password of your own choosing.
-ALTER USER 'web'@'localhost' IDENTIFIED BY '123456';
+ALTER USER 'web'@'localhost' IDENTIFIED BY '12345678';
 
 -- insert new snippets to the database
 INSERT INTO snippets (title, content, created, expires)
@@ -50,4 +49,20 @@ WHERE expires > UTC_TIMESTAMP() AND id = ?
 SELECT id, title, content, created, expires
 FROM snippets
 WHERE expires > UTC_TIMESTAMP()
-ORDER BY id DESC LIMIT 10
+ORDER BY id DESC LIMIT 10;
+
+-- sessions table
+CREATE TABLE sessions (
+token CHAR(43) PRIMARY KEY, data BLOB NOT NULL,
+expiry TIMESTAMP(6) NOT NULL
+);
+CREATE INDEX sessions_expiry_idx ON sessions (expiry);
+
+-- user table
+CREATE TABLE users (
+id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, name VARCHAR(255) NOT NULL,
+email VARCHAR(255) NOT NULL,
+hashed_password CHAR(60) NOT NULL,
+created DATETIME NOT NULL
+);
+ALTER TABLE users ADD CONSTRAINT users_uc_email UNIQUE (email);

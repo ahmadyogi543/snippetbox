@@ -27,7 +27,7 @@ type App struct {
 func main() {
 	// get flags from the command line and parse it.
 	addr := flag.String("addr", ":3000", "HTTP network address")
-	dsn := flag.String("dsn", "web:123456@/snippetbox?parseTime=true", "MySQL data source name")
+	dsn := flag.String("dsn", "web:12345678@/snippetbox?parseTime=true", "MySQL data source name")
 	flag.Parse()
 
 	// custom loggers (info and error) to log info and error to stdout and stderr.
