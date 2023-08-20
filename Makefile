@@ -5,7 +5,7 @@ gen-tls:
 	@mkdir tls
 	@cd tls && go run /usr/local/go/src/crypto/tls/generate_cert.go --rsa-bits=2048 --host=localhost
 
-run: build gen-tls
+run: build
 	@cp -r tls bin/
 	@./bin/web -addr=":5000"
 
