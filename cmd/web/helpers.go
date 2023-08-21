@@ -12,7 +12,7 @@ import (
 
 func (app *App) serverError(w http.ResponseWriter, err error) {
 	trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
-	app.errorLog.Output(2, trace) // log the trace on the second depths
+	app.errorLog.Output(2, trace)
 
 	if app.debug {
 		http.Error(w, trace, http.StatusInternalServerError)

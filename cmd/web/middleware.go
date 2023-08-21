@@ -8,7 +8,6 @@ import (
 	"github.com/justinas/nosurf"
 )
 
-// adds some HTTP security headers to every response, inline with current OWASP guidance.
 func secureHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Security-Policy", "default-src 'self'; style-src 'self' fonts.googleapis.com; font-src fonts.gstatic.com")
@@ -21,7 +20,6 @@ func secureHeaders(next http.Handler) http.Handler {
 	})
 }
 
-// log every request to the info logger.
 func (app *App) logRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		app.infoLog.Printf("%s - %s %s %s", r.RemoteAddr, r.Proto, r.Method, r.URL.RequestURI())
@@ -30,7 +28,6 @@ func (app *App) logRequest(next http.Handler) http.Handler {
 	})
 }
 
-// if panic happens, recover and send 500 status code.
 func (app *App) recoverPanic(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
