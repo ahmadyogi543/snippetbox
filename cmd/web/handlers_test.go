@@ -68,7 +68,7 @@ func TestSnippetView(t *testing.T) {
 
 			assert.Equal(t, code, test.expectedCode)
 			if test.expectedBody != "" {
-				assert.StringContaints(t, body, test.expectedBody)
+				assert.StringContains(t, body, test.expectedBody)
 			}
 		})
 	}
@@ -91,7 +91,6 @@ func TestSnippetCreate(t *testing.T) {
 		csrfToken := extractCSRFToken(t, body)
 
 		form := url.Values{}
-		form.Add("name", "Ahmad Yogi")
 		form.Add("email", "ayogi@snippetbox.sh")
 		form.Add("password", "12345678")
 		form.Add("csrf_token", csrfToken)
@@ -99,8 +98,68 @@ func TestSnippetCreate(t *testing.T) {
 
 		code, _, body := server.get(t, "/snippet/create")
 		assert.Equal(t, code, http.StatusOK)
-		assert.StringContaints(t, body, `<form action="/snippet/create" method="POST">`)
+		assert.StringContains(t, body, `<form action="/snippet/create" method="POST">`)
 	})
+}
+
+func TestSnippetCreatePost(t *testing.T) {
+	app := newTestApp(t)
+	server := newTestServer(t, app.routes())
+	defer server.Close()
+
+	tests := []struct {
+		name         string
+		title        string
+		content      string
+		expires      string
+		expectedCode int
+	}{
+		{
+			name:         "Valid Form",
+			title:        "A Title",
+			content:      "This is a content example",
+			expires:      "365",
+			expectedCode: http.StatusSeeOther,
+		},
+		{
+			name:         "Empty Field",
+			title:        "",
+			content:      "",
+			expires:      "7",
+			expectedCode: http.StatusUnprocessableEntity,
+		},
+		{
+			name:         "Invalid Expires",
+			title:        "A Title",
+			content:      "This is a content example",
+			expires:      "1000",
+			expectedCode: http.StatusUnprocessableEntity,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			_, _, body := server.get(t, "/user/login")
+			csrfToken := extractCSRFToken(t, body)
+			form := url.Values{}
+			form.Add("name", "Ahmad Yogi")
+			form.Add("email", "ayogi@snippetbox.sh")
+			form.Add("password", "12345678")
+			form.Add("csrf_token", csrfToken)
+			server.postForm(t, "/user/login", form)
+
+			_, _, body = server.get(t, "/snippet/create")
+			csrfToken = extractCSRFToken(t, body)
+			form = url.Values{}
+			form.Add("title", test.title)
+			form.Add("content", test.content)
+			form.Add("expires", test.expires)
+			form.Add("csrf_token", csrfToken)
+
+			code, _, _ := server.postForm(t, "/snippet/create", form)
+			assert.Equal(t, code, test.expectedCode)
+		})
+	}
 }
 
 func TestUserSignup(t *testing.T) {
@@ -210,8 +269,114 @@ func TestUserSignup(t *testing.T) {
 			code, _, body := server.postForm(t, "/user/signup", form)
 			assert.Equal(t, code, test.expectedCode)
 			if test.expectedFormTag != "" {
-				assert.StringContaints(t, body, test.expectedFormTag)
+				assert.StringContains(t, body, test.expectedFormTag)
 			}
+		})
+	}
+}
+
+func TestAccountView(t *testing.T) {
+	app := newTestApp(t)
+	server := newTestServer(t, app.routes())
+	defer server.Close()
+
+	_, _, body := server.get(t, "/user/login")
+	csrfToken := extractCSRFToken(t, body)
+
+	form := url.Values{}
+	form.Add("email", "ayogi@snippetbox.sh")
+	form.Add("password", "12345678")
+	form.Add("csrf_token", csrfToken)
+
+	server.postForm(t, "/user/login", form)
+
+	code, _, _ := server.get(t, "/account/view")
+	assert.Equal(t, code, http.StatusOK)
+}
+
+func TestPasswordUpdate(t *testing.T) {
+	app := newTestApp(t)
+	server := newTestServer(t, app.routes())
+	defer server.Close()
+
+	t.Run("Unauthenticated", func(t *testing.T) {
+		code, headers, _ := server.get(t, "/account/password/update")
+
+		assert.Equal(t, code, http.StatusSeeOther)
+		assert.Equal(t, headers.Get("Location"), "/user/login")
+	})
+
+	t.Run("Authenticated", func(t *testing.T) {
+		_, _, body := server.get(t, "/user/login")
+		csrfToken := extractCSRFToken(t, body)
+
+		form := url.Values{}
+		form.Add("email", "ayogi@snippetbox.sh")
+		form.Add("password", "12345678")
+		form.Add("csrf_token", csrfToken)
+		server.postForm(t, "/user/login", form)
+
+		code, _, _ := server.get(t, "/account/password/update")
+		assert.Equal(t, code, http.StatusOK)
+	})
+}
+
+func TestPasswordUpdatePost(t *testing.T) {
+	app := newTestApp(t)
+	server := newTestServer(t, app.routes())
+	defer server.Close()
+
+	tests := []struct {
+		name               string
+		currentPassword    string
+		newPassword        string
+		confirmNewPassword string
+		expectedCode       int
+	}{
+		{
+			name:               "Valid Form",
+			currentPassword:    "12345678",
+			newPassword:        "87654321",
+			confirmNewPassword: "87654321",
+			expectedCode:       http.StatusSeeOther,
+		},
+		{
+			name:               "Empty Form",
+			currentPassword:    "",
+			newPassword:        "",
+			confirmNewPassword: "",
+			expectedCode:       http.StatusUnprocessableEntity,
+		},
+		{
+			name:               "Not Match Confirm New Password",
+			currentPassword:    "12345678",
+			newPassword:        "87654321",
+			confirmNewPassword: "12345678",
+			expectedCode:       http.StatusUnprocessableEntity,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			_, _, body := server.get(t, "/user/login")
+			csrfToken := extractCSRFToken(t, body)
+			form := url.Values{}
+			form.Add("name", "Ahmad Yogi")
+			form.Add("email", "ayogi@snippetbox.sh")
+			form.Add("password", "12345678")
+			form.Add("csrf_token", csrfToken)
+			server.postForm(t, "/user/login", form)
+
+			_, _, body = server.get(t, "/account/password/update")
+			csrfToken = extractCSRFToken(t, body)
+			form = url.Values{}
+			form.Add("current_password", test.currentPassword)
+			form.Add("new_password", test.newPassword)
+			form.Add("confirm_new_password", test.confirmNewPassword)
+			form.Add("csrf_token", csrfToken)
+
+			code, _, _ := server.postForm(t, "/account/password/update", form)
+			assert.Equal(t, code, test.expectedCode)
 		})
 	}
 }

@@ -13,7 +13,7 @@ func Equal[T comparable](t *testing.T, actual, expected T) {
 	}
 }
 
-func StringContaints(t *testing.T, actual, expected string) {
+func StringContains(t *testing.T, actual, expected string) {
 	t.Helper()
 
 	if !strings.Contains(actual, expected) {

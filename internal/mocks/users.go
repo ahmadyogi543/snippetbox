@@ -21,6 +21,10 @@ func (um *UserModel) Get(id int) (*models.User, error) {
 	return nil, models.ErrNoRecord
 }
 
+func (um *UserModel) UpdatePassword(id int, currentPassword, newPassword string) error {
+	return nil
+}
+
 func (um *UserModel) Insert(name, email, password string) error {
 	switch email {
 	case "duplicate@snippetbox.sh":
