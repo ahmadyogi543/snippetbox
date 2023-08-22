@@ -7,6 +7,74 @@ import (
 	"github.com/ahmadyogi543/snippetbox/internal/assert"
 )
 
+func TestValidatorValid(t *testing.T) {
+	t.Run("Valid", func(t *testing.T) {
+		v := Validator{
+			FieldErrors: make(map[string]string),
+		}
+		isValid := v.Valid()
+		assert.Equal(t, isValid, true)
+	})
+
+	t.Run("Invalid", func(t *testing.T) {
+		v := Validator{
+			FieldErrors: map[string]string{
+				"name": "error message",
+			},
+		}
+		isValid := v.Valid()
+		assert.Equal(t, isValid, false)
+	})
+}
+
+func TestValidatorAddFieldError(t *testing.T) {
+	t.Run("Non-empty FieldErrors", func(t *testing.T) {
+		v := Validator{
+			FieldErrors: map[string]string{
+				"name": "This field should not be blank",
+			},
+		}
+		v.AddFieldError("email", "This field should not be blank")
+		assert.Equal(t, len(v.FieldErrors), 2)
+	})
+
+	t.Run("Empty FieldErrors", func(t *testing.T) {
+		v := Validator{}
+		v.AddFieldError("email", "This field should not be blank")
+		assert.Equal(t, len(v.FieldErrors), 1)
+	})
+
+	t.Run("Existing FieldError", func(t *testing.T) {
+		v := Validator{
+			FieldErrors: map[string]string{
+				"password": "This field should not be blank",
+			},
+		}
+		v.AddFieldError("password", "This field should be at least 8 characters")
+		assert.Equal(t, len(v.FieldErrors), 1)
+	})
+}
+
+func TestValidatorCheckField(t *testing.T) {
+	t.Run("OK", func(t *testing.T) {
+		v := Validator{}
+		v.CheckField(NotBlank("Thomas"), "name", "This field should not be blank")
+		assert.Equal(t, len(v.FieldErrors), 0)
+	})
+
+	t.Run("Not OK", func(t *testing.T) {
+		v := Validator{}
+		v.CheckField(NotBlank(""), "name", "This field should not be blank")
+		assert.Equal(t, len(v.FieldErrors), 1)
+	})
+}
+
+func TestValidatorAddNonFieldError(t *testing.T) {
+	v := Validator{}
+	v.AddNonFieldError("This is a non filed error example")
+	assert.Equal(t, len(v.NonFieldErrors), 1)
+}
+
 func TestNotBlank(t *testing.T) {
 	tests := []struct {
 		name     string
